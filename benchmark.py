@@ -127,10 +127,102 @@ def benchmark_monte_carlo_optimization(num_employees: int = 30, num_iterations: 
     }
 
 
+def benchmark_anti_twin_stress_testing(num_employees: int = 20) -> Dict[str, float]:
+    """Benchmark anti-twin stress testing performance"""
+    print(f"Benchmarking anti-twin stress testing with {num_employees} employees...")
+    
+    engine = DigitalTwinEngine()
+    employees_data = generate_sample_employee_data(num_employees)
+    twins = engine.batch_create_twins(employees_data)
+    
+    team_members = list(twins.keys())[:5]
+    
+    start_time = time.time()
+    stress_results = engine.stress_test_team_composition(team_members, num_anti_twins=3)
+    end_time = time.time()
+    
+    execution_time = end_time - start_time
+    
+    print(f"Stress test time: {execution_time:.3f} seconds")
+    print(f"Risk level: {stress_results.get('risk_level', 'UNKNOWN')}")
+    print(f"Max vulnerability: {stress_results.get('maximum_vulnerability', 0):.3f}")
+    
+    return {
+        'total_time': execution_time,
+        'risk_level': stress_results.get('risk_level', 'UNKNOWN'),
+        'max_vulnerability': stress_results.get('maximum_vulnerability', 0),
+        'num_employees': num_employees
+    }
+
+
+def benchmark_nsga2_optimization(num_employees: int = 30, generations: int = 50) -> Dict[str, float]:
+    """Benchmark NSGA-II optimization performance"""
+    print(f"Benchmarking NSGA-II optimization with {num_employees} employees, {generations} generations...")
+    
+    engine = DigitalTwinEngine()
+    employees_data = generate_sample_employee_data(num_employees)
+    twins = engine.batch_create_twins(employees_data)
+    
+    simulator = ScenarioSimulator(twins)
+    constraints = {
+        'max_team_size': 8,
+        'min_skill_diversity': 0.3
+    }
+    
+    start_time = time.time()
+    results = simulator.nsga2_optimization(constraints, population_size=30, generations=generations)
+    end_time = time.time()
+    
+    execution_time = end_time - start_time
+    
+    print(f"NSGA-II time: {execution_time:.3f} seconds")
+    print(f"Best score: {results['best_score']:.3f}")
+    print(f"Pareto front size: {results['pareto_front_size']}")
+    
+    return {
+        'total_time': execution_time,
+        'best_score': results['best_score'],
+        'pareto_front_size': results['pareto_front_size'],
+        'generations': generations,
+        'num_employees': num_employees
+    }
+
+
+def benchmark_graph_relationship_modeling(num_employees: int = 40) -> Dict[str, float]:
+    """Benchmark graph-based relationship modeling performance"""
+    print(f"Benchmarking graph relationship modeling with {num_employees} employees...")
+    
+    engine = DigitalTwinEngine()
+    employees_data = generate_sample_employee_data(num_employees)
+    twins = engine.batch_create_twins(employees_data)
+    
+    simulator = ScenarioSimulator(twins)
+    
+    start_time = time.time()
+    graph = simulator.build_collaboration_graph()
+    network_analysis = simulator.analyze_collaboration_network()
+    end_time = time.time()
+    
+    execution_time = end_time - start_time
+    
+    print(f"Graph analysis time: {execution_time:.3f} seconds")
+    print(f"Network nodes: {network_analysis['network_stats']['nodes']}")
+    print(f"Network edges: {network_analysis['network_stats']['edges']}")
+    print(f"Network density: {network_analysis['network_stats']['density']:.3f}")
+    
+    return {
+        'total_time': execution_time,
+        'nodes': network_analysis['network_stats']['nodes'],
+        'edges': network_analysis['network_stats']['edges'],
+        'density': network_analysis['network_stats']['density'],
+        'num_employees': num_employees
+    }
+
+
 def run_all_benchmarks():
-    """Run comprehensive benchmarks"""
+    """Run comprehensive benchmarks including new patent features"""
     print("=" * 60)
-    print("COMPASS Performance Benchmarks")
+    print("COMPASS Performance Benchmarks - Patent Features")
     print("=" * 60)
     
     benchmarks = {}
@@ -146,8 +238,13 @@ def run_all_benchmarks():
     
     print("\n" + "-" * 40)
     
-    benchmarks['optimization_small'] = benchmark_monte_carlo_optimization(20, 500)
-    benchmarks['optimization_medium'] = benchmark_monte_carlo_optimization(30, 1000)
+    benchmarks['optimization_monte_carlo'] = benchmark_monte_carlo_optimization(20, 500)
+    benchmarks['optimization_nsga2'] = benchmark_nsga2_optimization(20, 30)
+    
+    print("\n" + "-" * 40)
+    
+    benchmarks['anti_twin_stress_test'] = benchmark_anti_twin_stress_testing(20)
+    benchmarks['graph_relationship_modeling'] = benchmark_graph_relationship_modeling(30)
     
     print("\n" + "=" * 60)
     print("Benchmark Summary:")
@@ -155,6 +252,24 @@ def run_all_benchmarks():
     
     for name, results in benchmarks.items():
         print(f"{name}: {results}")
+    
+    print("\n" + "=" * 60)
+    print("Patent Feature Performance Comparison:")
+    print("=" * 60)
+    
+    if 'optimization_monte_carlo' in benchmarks and 'optimization_nsga2' in benchmarks:
+        mc_time = benchmarks['optimization_monte_carlo']['total_time']
+        nsga2_time = benchmarks['optimization_nsga2']['total_time']
+        print(f"Monte Carlo vs NSGA-II time ratio: {mc_time/nsga2_time:.2f}x")
+        print(f"NSGA-II best score: {benchmarks['optimization_nsga2']['best_score']:.3f}")
+    
+    if 'anti_twin_stress_test' in benchmarks:
+        print(f"Anti-twin stress test risk level: {benchmarks['anti_twin_stress_test']['risk_level']}")
+        print(f"Maximum vulnerability detected: {benchmarks['anti_twin_stress_test']['max_vulnerability']:.3f}")
+    
+    if 'graph_relationship_modeling' in benchmarks:
+        print(f"Collaboration network density: {benchmarks['graph_relationship_modeling']['density']:.3f}")
+        print(f"Network analysis completed in: {benchmarks['graph_relationship_modeling']['total_time']:.3f}s")
     
     return benchmarks
 
